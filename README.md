@@ -2,26 +2,24 @@
 Redis is an open-source in-memory data store, which is often used as a distributed database cache. It is written in ANSI C language and provides data structures such as strings, hashes, lists, sets, sorted sets with range queries, bitmaps, hyperloglogs, geospatial indexes, and streams. It is a blazing fast key-value based database and that’s why it is used by some of the biggest apps such as Twitter, Github, Pinterest, Snapchat, Flickr, Digg, Stackoverflow, etc. You can use Redis from most programming languages. It is such a popular and widely used cache that Microsoft Azure also provides its cloud-based version with the name Azure Cache for Redis.
 
 # Setting Up Redis Server On Windows
-Redis has been developed and tested mostly in BSD, Linus, and OSX operating systems and unfortunately, there is no official support for the Windows based operating systems but there are some ports available that can be used to install and use Redis on Windows. Typically, a separate machine is used by developers to serve as cache memory for multiple applications. Visit the following URL to download the Redis Cache for Windows supported by Microsoft.
+Download & Extract the zip file from below link and simply run the redis-server.exe file to start the Redis server.
 
 https://github.com/microsoftarchive/redis/releases/tag/win-3.0.504
 
-Download & Extract the zip file and simply run the redis-server.exe file to start the Redis server.
-
 # Integrating Redis Cache in ASP.NET Core
 
-To connect and start caching data from .NET Core applications, we need to install the following package from NuGet.
+First we need to install the following package from NuGet.
 
 Microsoft.Extensions.Caching.StackExchangeRedis
 
-Next, we need to configure our application to support Redis cache and for this purpose, we need to call the AddStackExchangeRedisCache method in the ConfigureServices method of the Startup.cs file. 
+Next, we need to configure our application to support Redis cache so we need to call the AddStackExchangeRedisCache method in the ConfigureServices method of the Startup.cs file. 
 
     services.AddStackExchangeRedisCache(options =>
     {
         options.Configuration = Configuration["RedisCacheServerUrl"];
     });
 
-We can add the RedisCacheServerUrl setting in the appsettings.json file and the value of this setting will specify the port on which Redis Server is available to listen to client requests.
+Then, we should add the RedisCacheServerUrl in the appsettings.json file and the value of this setting will specify the port on which Redis Server is available to listen to client requests.
 
     {
       "RedisCacheServerUrl": "127.0.0.1:6379",
@@ -29,15 +27,17 @@ We can add the RedisCacheServerUrl setting in the appsettings.json file and the 
       ...
     }
     
-Once the Redis server settings are configured, we are allowed to inject the IDistributedCache interface in our services and controllers.  The following is the updated code of our ProductController in which I first injected the IDistributedCache in the constructor and then used GetAsync and SetAsync methods to get and set the products list in the cache.
+After that we need to inject IDistributedCache interface in our controller (In Constructor).
 
-      public ProductController(AdventureWorksDbContext context, IDistributedCache cache)
+      private readonly ApplicationDbContext _context;
+      private readonly IDistributedCache _cache;
+      public ProductController(ApplicationDbContext context, IDistributedCache cache)
       {
           _context = context;
           _cache = cache;
       }
       
-  And the api method: 
+Now We can use GetAsync and SetAsync methods to get and set the products list in the cache in our api methods: 
 
       [HttpGet]
       public async Task<IActionResult> GetAll()
